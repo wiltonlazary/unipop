@@ -5,6 +5,7 @@ import org.jooq.DSLContext;
 import org.jooq.Query;
 import org.jooq.Result;
 import org.jooq.Select;
+import org.unipop.jdbc.utils.ContextManager;
 import org.unipop.query.predicates.PredicateQuery;
 import org.unipop.query.predicates.PredicatesHolder;
 import org.unipop.query.search.SearchQuery;
@@ -16,23 +17,45 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * @author Gur Ronen
- * @since 6/12/2016
+ * A schema that represents an element in a JDBC data source
+ * @param <E> Element
  */
 public interface JdbcSchema<E extends Element> extends ElementSchema<E> {
 
-    Select getSearch(SearchQuery<E> query, PredicatesHolder predicates, DSLContext context);
-    List<E> parseResults(Result result, PredicateQuery query);
+    /**
+     * Converts a SearchQuery to a select statement
+     * @param query A search query
+     * @param predicates A predicates holder
+     * @return A select statement
+     */
+    Select getSearch(SearchQuery<E> query, PredicatesHolder predicates);
+
+    /**
+     * Returns a list of elements
+     * @param result The query results
+     * @param query The UniQuery
+     * @return A list of elements
+     */
+    List<E> parseResults(List<Map<String, Object>> result, PredicateQuery query);
 
     /**
      * @return the full table name, including database prefix
      */
     String getTable();
 
+    /**
+     * @param element The element
+     * @return The element's Id
+     */
     default Object getId(E element) {
         return element.id();
     }
 
+    /**
+     * Converts an element to a JDBC row
+     * @param element An element
+     * @return A JDBC row
+     */
     default Row toRow(E element) {
         Map<String, Object> fields = this.toFields(element);
         if (fields == null) {
@@ -45,6 +68,10 @@ public interface JdbcSchema<E extends Element> extends ElementSchema<E> {
         return new JdbcSchema.Row(table, id, fields);
     }
 
+    /**
+     * @param element An element
+     * @return An insert statement
+     */
     Query getInsertStatement(E element);
 
     class Row {

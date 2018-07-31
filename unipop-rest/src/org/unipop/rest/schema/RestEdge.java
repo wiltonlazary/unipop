@@ -28,8 +28,8 @@ public class RestEdge extends AbstractRestSchema<Edge> implements RestEdgeSchema
     protected VertexSchema outVertexSchema;
     protected VertexSchema inVertexSchema;
 
-    public RestEdge(JSONObject configuration, UniGraph graph, String url, TemplateHolder templateHolder, String resultPath, JSONObject opTranslator, int maxResultSize, MatcherHolder complexTranslator) {
-        super(configuration, graph, url, templateHolder, resultPath, opTranslator, maxResultSize, complexTranslator);
+    public RestEdge(JSONObject configuration, UniGraph graph, String url, TemplateHolder templateHolder, String resultPath, JSONObject opTranslator, int maxResultSize, MatcherHolder complexTranslator, boolean valuesToString) {
+        super(configuration, graph, url, templateHolder, resultPath, opTranslator, maxResultSize, complexTranslator, valuesToString);
         this.outVertexSchema = createVertexSchema("outVertex");
         this.inVertexSchema = createVertexSchema("inVertex");
     }
@@ -38,13 +38,21 @@ public class RestEdge extends AbstractRestSchema<Edge> implements RestEdgeSchema
         JSONObject vertexConfiguration = this.json.optJSONObject(key);
         if (vertexConfiguration == null) return null;
         if (vertexConfiguration.optBoolean("ref", false)) return new ReferenceVertexSchema(vertexConfiguration, graph);
-        return new RestVertex(vertexConfiguration, baseUrl, graph, templateHolder, resultPath, opTranslator, maxResultSize, complexTranslator);
+        return new RestVertex(vertexConfiguration, baseUrl, resource, graph, templateHolder, resultPath, opTranslator, maxResultSize, complexTranslator, valuesToString);
     }
 
+    protected VertexSchema createVertexSchema(String key, String resource) throws JSONException {
+        JSONObject vertexConfiguration = this.json.optJSONObject(key);
+        if (vertexConfiguration == null) return null;
+        if (vertexConfiguration.optBoolean("ref", false)) return new ReferenceVertexSchema(vertexConfiguration, graph);
+        return new RestVertex(vertexConfiguration, baseUrl, graph, templateHolder, resultPath, opTranslator, maxResultSize, complexTranslator, valuesToString);
+    }
 
     @Override
     protected Edge create(Map<String, Object> fields) {
-        return new UniEdge(getProperties(fields), outVertexSchema.createElement(fields), inVertexSchema.createElement(fields), graph);
+        Map<String, Object> properties = getProperties(fields);
+        if (properties == null) return null;
+        return new UniEdge(properties, outVertexSchema.createElement(fields), inVertexSchema.createElement(fields), this, graph);
     }
 
     @Override

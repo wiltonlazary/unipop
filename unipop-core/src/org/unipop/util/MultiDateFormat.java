@@ -1,11 +1,17 @@
 package org.unipop.util;
 
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+//import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+import java.lang.UnsupportedOperationException;
 
+//import com.sun.corba.se.spi.orb.Operation;
+
+import javax.naming.OperationNotSupportedException;
 import java.text.*;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Created by sbarzilay on 8/19/16.
@@ -13,12 +19,10 @@ import java.util.List;
 public class MultiDateFormat extends DateFormat {
     private List<SimpleDateFormat> formats;
 
-    public MultiDateFormat(String format, String... formats) {
+    public MultiDateFormat(String format, Collection<String> formats) {
         this.formats = new ArrayList<>();
         this.formats.add(new SimpleDateFormat(format));
-        for (String f : formats) {
-            this.formats.add(new SimpleDateFormat(f));
-        }
+        this.formats.addAll(formats.stream().map(SimpleDateFormat::new).collect(Collectors.toList()));
     }
 
     @Override
@@ -39,6 +43,6 @@ public class MultiDateFormat extends DateFormat {
 
     @Override
     public Date parse(String source, ParsePosition pos) {
-        throw new NotImplementedException();
+        throw new UnsupportedOperationException();
     }
 }

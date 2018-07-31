@@ -4,14 +4,16 @@
   "add":{
     "url": "/{{resource}}/{{type}}/{{id}}",
     "template": "{\n{{#prop}}\"{{key}}\":\"{{value}}\"{{^-last}}, {{/-last}}{{/prop}}\n}",
-    "commit": "/{{resource}}/_refresh"
+    "commit": {
+      "url":"/{{resource}}/_refresh"
+    }
   },
   "search":{
     "url": "{{resource}}/_search",
     "template": "resources/search.mustache"
   },
   "delete":{
-    "url" : "/{{_label}}/{{_id}}"
+    "url" : "{{resource}}/{{type}}/{{id}}"
   },
   "resultPath": "hits.hits",
   "opTranslator": {

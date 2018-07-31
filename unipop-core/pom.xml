@@ -1,17 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <artifactId>unipop</artifactId>
-        <groupId>unipop</groupId>
-        <version>0.2</version>
+        <groupId>com.github.unipop-graph</groupId>
+        <version>0.2.2-SNAPSHOT</version>
     </parent>
     <artifactId>unipop-core</artifactId>
     <name>Unipop :: Core</name>
     <properties>
-        <tinkerpop.version>3.2.0-incubating</tinkerpop.version>
-        <slf4j.version>1.7.19</slf4j.version>
+        <tinkerpop.version>3.3.0</tinkerpop.version>
+        <slf4j.version>1.7.21</slf4j.version>
     </properties>
     <dependencies>
         <dependency>
@@ -40,11 +39,6 @@
             <version>${slf4j.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.github.stephenc.eaio-uuid</groupId>
-            <artifactId>uuid</artifactId>
-            <version>3.4.0</version>
-        </dependency>
-        <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-collections4</artifactId>
             <version>4.0</version>
@@ -61,6 +55,11 @@
         </dependency>
     </dependencies>
     <build>
+        <resources>
+            <resource>
+                <directory>resources</directory>
+            </resource>
+        </resources>
         <directory>${basedir}/target</directory>
         <pluginManagement>
             <plugins>

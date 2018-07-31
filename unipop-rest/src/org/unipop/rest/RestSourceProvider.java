@@ -12,6 +12,7 @@ import org.unipop.rest.util.matchers.KeyMatcher;
 import org.unipop.rest.util.matchers.Matcher;
 import org.unipop.rest.util.matchers.MultiOpMatcher;
 import org.unipop.rest.util.matchers.OpMatcher;
+import org.unipop.structure.traversalfilter.TraversalFilter;
 import org.unipop.structure.UniGraph;
 
 import java.util.*;
@@ -28,15 +29,17 @@ public class RestSourceProvider implements SourceProvider{
     private int maxResultSize;
     private TemplateHolder templateHolder;
     private MatcherHolder complexTranslator;
+    private boolean valuesToString;
 
     @Override
-    public Set<UniQueryController> init(UniGraph graph, JSONObject configuration) throws Exception {
+    public Set<UniQueryController> init(UniGraph graph, JSONObject configuration, TraversalFilter traversalFilter) throws Exception {
         this.graph = graph;
         String url = configuration.optString("baseUrl");
         templateHolder = new TemplateHolder(configuration);
         this.resultPath = configuration.optString("resultPath");
         this.opTranslator = configuration.getJSONObject("opTranslator");
         this.maxResultSize = configuration.optInt("maxResultSize", 10000);
+        this.valuesToString = configuration.optBoolean("valuesToString", false);
         List<Matcher.MatcherBuilder> builders = new ArrayList<>();
         builders.add(new KeyMatcher.KeyMatcherBuilder());
         builders.add(new OpMatcher.OpMatcherBuilder());
@@ -58,15 +61,15 @@ public class RestSourceProvider implements SourceProvider{
             schemas.add(createEdgeSchema(json, url));
         }
 
-        return Collections.singleton(new RestController(graph, schemas));
+        return Collections.singleton(new RestController(graph, schemas, traversalFilter));
     }
 
     private RestSchema createEdgeSchema(JSONObject json, String url) {
-        return new RestEdge(json, graph, url, templateHolder, resultPath, opTranslator, maxResultSize, complexTranslator);
+        return new RestEdge(json, graph, url, templateHolder, resultPath, opTranslator, maxResultSize, complexTranslator, valuesToString);
     }
 
     private RestSchema createVertexSchema(JSONObject json, String url) {
-        return new RestVertex(json, url, graph, templateHolder, resultPath, opTranslator, maxResultSize, complexTranslator);
+        return new RestVertex(json, url, graph, templateHolder, resultPath, opTranslator, maxResultSize, complexTranslator, valuesToString);
     }
 
     @Override

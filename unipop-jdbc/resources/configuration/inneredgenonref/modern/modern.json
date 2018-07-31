@@ -1,17 +1,23 @@
 {
   "class": "org.unipop.jdbc.JdbcSourceProvider",
   "driver": "org.h2.Driver",
-  "address": "jdbc:h2:mem:gremlin;",
+  "address": ["jdbc:h2:mem:gremlin;"],
   "sqlDialect": "H2",
   "vertices": [
     {
-      "table": "ANIMAL_MODERN",
+      "table": "vertex_inner",
       "id": "@ID",
-      "label": "animal",
+      "label": {
+        "field": "LABEL",
+        "exclude": [
+          "person"
+        ]
+      },
       "properties": {
         "name": "@NAME",
-        "age": "@AGE"
-      }
+        "lang": "@LANG"
+      },
+      "dynamicProperties": true
     },
     {
       "table": "vertex_inner",

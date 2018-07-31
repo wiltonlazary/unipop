@@ -1,6 +1,7 @@
 package org.unipop.process.properties;
 
 import com.google.common.collect.Sets;
+import org.apache.tinkerpop.gremlin.process.traversal.P;
 import org.apache.tinkerpop.gremlin.process.traversal.Step;
 import org.apache.tinkerpop.gremlin.process.traversal.Traversal;
 import org.apache.tinkerpop.gremlin.process.traversal.TraversalStrategy;
@@ -22,9 +23,9 @@ import org.unipop.process.repeat.UniGraphRepeatStepStrategy;
 import org.unipop.process.edge.EdgeStepsStrategy;
 import org.unipop.process.edge.UniGraphEdgeOtherVertexStep;
 import org.unipop.process.edge.UniGraphEdgeVertexStep;
-import org.unipop.process.start.UniGraphStartStepStrategy;
+import org.unipop.process.graph.UniGraphStepStrategy;
 import org.unipop.process.vertex.UniGraphVertexStepStrategy;
-import org.unipop.structure.UniGraph;
+import org.unipop.process.where.UniGraphWhereTraversalStep;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -36,7 +37,7 @@ import java.util.stream.Stream;
 public class UniGraphPropertiesStrategy extends AbstractTraversalStrategy<TraversalStrategy.ProviderOptimizationStrategy> implements TraversalStrategy.ProviderOptimizationStrategy {
     @Override
     public Set<Class<? extends ProviderOptimizationStrategy>> applyPrior() {
-        return Sets.newHashSet(UniGraphStartStepStrategy.class, UniGraphVertexStepStrategy.class, UniGraphRepeatStepStrategy.class, EdgeStepsStrategy.class);
+        return Sets.newHashSet(UniGraphStepStrategy.class, UniGraphVertexStepStrategy.class, UniGraphRepeatStepStrategy.class, EdgeStepsStrategy.class);
     }
 
     private void handlePropertiesSteps(String[] propertyKeys, PropertyFetcher propertyFetcher) {
@@ -125,6 +126,20 @@ public class UniGraphPropertiesStrategy extends AbstractTraversalStrategy<Traver
             Collection<PropertyFetcher> propertyFetchers = getPropertyFetcherStepOf(wherePredicateStep, traversal);
             if (propertyFetchers != null)
                 propertyFetchers.forEach(PropertyFetcher::fetchAllKeys);
+            else {
+                String possibleLabel = ((P) wherePredicateStep.getPredicate().get()).getValue().toString();
+                traversal.getSteps().forEach(step -> {
+                    if (step.getLabels().contains(possibleLabel)){
+                        if (step instanceof PropertyFetcher)
+                            ((PropertyFetcher) step).fetchAllKeys();
+                        else {
+                            Collection<PropertyFetcher> propertyFetcherStepOf = getPropertyFetcherStepOf(step, traversal);
+                            if (propertyFetcherStepOf != null)
+                                propertyFetcherStepOf.forEach(PropertyFetcher::fetchAllKeys);
+                        }
+                    }
+                });
+            }
         });
 
         TraversalHelper.getStepsOfAssignableClass(FilterStep.class, traversal).forEach(filterStep -> {
@@ -260,13 +275,7 @@ public class UniGraphPropertiesStrategy extends AbstractTraversalStrategy<Traver
                 allPropertyFetchersOf = getAllPropertyFetchersOf(selectStep, traversal);
             }
             allPropertyFetchersOf.forEach(propertyFetcher -> {
-                Set<String> scopeKeys = selectStep.getScopeKeys();
-                Set<String> labels = ((Step) propertyFetcher).getLabels();
-                Optional<String> first = labels.stream().filter(scopeKeys::contains).findFirst();
-                // TODO: fetch only relevant properties
-                if (first.isPresent()) {
-                    propertyFetcher.fetchAllKeys();
-                }
+                allPropertyFetchersOf.forEach(PropertyFetcher::fetchAllKeys);
             });
         });
 
@@ -329,6 +338,13 @@ public class UniGraphPropertiesStrategy extends AbstractTraversalStrategy<Traver
                 });
             }
         });
+
+        if(TraversalHelper.hasStepOfClass(WhereTraversalStep.class, traversal) || TraversalHelper.hasStepOfClass(UniGraphWhereTraversalStep.class, traversal)){
+            traversal.getSteps().forEach(step -> {
+                if (step instanceof PropertyFetcher)
+                    ((PropertyFetcher) step).fetchAllKeys();
+            });
+        }
     }
 
 
